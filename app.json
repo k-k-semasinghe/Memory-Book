@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Memory Book",
+    "slug": "memory-book",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "memorybook",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.memorybook.app"
+    },
+    "android": {
+      "package": "com.memorybook.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-status-bar",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
