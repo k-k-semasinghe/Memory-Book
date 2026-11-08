@@ -17,7 +17,8 @@
       "expo-router",
       "expo-sqlite",
       "expo-status-bar",
-      "expo-font"
+      "expo-font",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": false

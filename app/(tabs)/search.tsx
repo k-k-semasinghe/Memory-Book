@@ -20,7 +20,8 @@ import { EmptyState } from '../../src/components/common/EmptyState';
 import { Screen } from '../../src/components/common/Screen';
 import { NoteCard } from '../../src/components/notes/NoteCard';
 import { colors, radius, spacing, typography } from '../../src/constants/theme';
-import { useCategories } from '../../src/hooks/useCategories';
+import { useActiveCategories } from '../../src/hooks/useCategories';
+import { useAIStatus } from '../../src/hooks/useAI';
 import { useSearchNotes } from '../../src/hooks/useNotes';
 import { useTags } from '../../src/hooks/useTags';
 import { useSearchStore } from '../../src/stores/useSearchStore';
@@ -35,10 +36,41 @@ const RANGES: Array<{ key: RangeKey; label: string; days?: number }> = [
   { key: '90d', label: 'Last 90 days', days: 90 },
 ];
 
+function aiCardTitle(status: ReturnType<typeof useAIStatus>['status']): string {
+  switch (status) {
+    case 'ready':
+      return 'Ask AI';
+    case 'offline':
+      return 'AI is offline';
+    case 'no_key':
+      return 'Add an API key';
+    case 'disabled':
+      return 'AI is off';
+    default:
+      return 'Checking AI…';
+  }
+}
+
+function aiCardSubtitle(status: ReturnType<typeof useAIStatus>['status']): string {
+  switch (status) {
+    case 'ready':
+      return 'Answers with sources from your notes';
+    case 'offline':
+      return 'You are offline — keyword search still works';
+    case 'no_key':
+      return 'Set up Gemini or Groq in Settings';
+    case 'disabled':
+      return 'Enable it in Settings';
+    default:
+      return 'Checking connection and setup';
+  }
+}
+
 export default function SearchScreen() {
   const router = useRouter();
-  const categories = useCategories();
+  const categories = useActiveCategories();
   const tags = useTags();
+  const ai = useAIStatus();
 
   const {
     text,
@@ -105,22 +137,32 @@ export default function SearchScreen() {
   const header = (
     <View style={styles.filtersBlock}>
       <Pressable
-        style={styles.aiCard}
-        onPress={() =>
-          Alert.alert(
-            'AI assistant',
-            'Natural-language answers will be enabled once the AI backend is connected. Keyword search works now.',
-          )
-        }
+        style={[styles.aiCard, ai.status !== 'ready' && styles.aiCardMuted]}
+        onPress={() => {
+          if (ai.status === 'ready') {
+            router.push('/ask');
+            return;
+          }
+          if (ai.status === 'offline') {
+            Alert.alert(
+              'You are offline',
+              'Connect to the internet to use AI. Keyword search still works.',
+            );
+            return;
+          }
+          router.push('/ai-settings');
+        }}
       >
         <View style={styles.aiIcon}>
-          <Ionicons name="sparkles-outline" size={18} color={colors.accent} />
+          <Ionicons
+            name={ai.status === 'offline' ? 'cloud-offline-outline' : 'sparkles-outline'}
+            size={18}
+            color={colors.accent}
+          />
         </View>
         <View style={styles.aiText}>
-          <Text style={styles.aiTitle}>Ask AI</Text>
-          <Text style={styles.aiSubtitle}>
-            Answers with sources — needs the AI backend
-          </Text>
+          <Text style={styles.aiTitle}>{aiCardTitle(ai.status)}</Text>
+          <Text style={styles.aiSubtitle}>{aiCardSubtitle(ai.status)}</Text>
         </View>
         <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
       </Pressable>
@@ -290,6 +332,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.md,
     marginBottom: spacing.xs,
+  },
+  aiCardMuted: {
+    opacity: 0.72,
   },
   aiIcon: {
     width: 34,

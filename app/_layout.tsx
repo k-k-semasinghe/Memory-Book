@@ -38,6 +38,9 @@ export default function RootLayout() {
             options={{ presentation: 'modal', headerShown: false }}
           />
           <Stack.Screen name="note/[id]" options={{ title: 'Note' }} />
+          <Stack.Screen name="ask" options={{ title: 'Ask AI' }} />
+          <Stack.Screen name="ai-settings" options={{ title: 'AI settings' }} />
+          <Stack.Screen name="extract/[noteId]" options={{ title: 'AI suggestions' }} />
           <Stack.Screen name="settings" options={{ title: 'Settings' }} />
           <Stack.Screen name="categories" options={{ title: 'Categories' }} />
           <Stack.Screen name="tags" options={{ title: 'Tags' }} />

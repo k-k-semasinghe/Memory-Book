@@ -15,6 +15,22 @@ export async function listCategories(): Promise<Category[]> {
   return rows.map(mapCategory);
 }
 
+export async function listActiveCategories(): Promise<Category[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<CategoryRow>(
+    `SELECT c.* FROM categories c
+     WHERE c.deleted_at IS NULL
+       AND EXISTS (
+         SELECT 1 FROM notes n
+         WHERE n.category_id = c.id
+           AND n.deleted_at IS NULL
+           AND n.archived_at IS NULL
+       )
+     ORDER BY c.is_default DESC, c.name ASC`,
+  );
+  return rows.map(mapCategory);
+}
+
 export async function getCategory(id: string): Promise<Category | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<CategoryRow>(

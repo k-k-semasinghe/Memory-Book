@@ -301,9 +301,10 @@ export async function searchNotes(filters: SearchFilters): Promise<Note[]> {
     clauses.push(
       `(n.title LIKE ? OR n.body LIKE ?
         OR EXISTS (SELECT 1 FROM note_tags nt JOIN tags t ON t.id = nt.tag_id WHERE nt.note_id = n.id AND t.name LIKE ?)
-        OR EXISTS (SELECT 1 FROM categories c WHERE c.id = n.category_id AND c.name LIKE ?))`,
+        OR EXISTS (SELECT 1 FROM categories c WHERE c.id = n.category_id AND c.name LIKE ?)
+        OR EXISTS (SELECT 1 FROM note_enrichments e WHERE e.note_id = n.id AND e.keywords_json LIKE ?))`,
     );
-    params.push(like, like, like, like);
+    params.push(like, like, like, like, like);
   }
 
   const rows = await db.getAllAsync<NoteRow>(
@@ -314,6 +315,55 @@ export async function searchNotes(filters: SearchFilters): Promise<Note[]> {
     params,
   );
   return hydrateNotes(rows);
+}
+
+export async function searchNotesAnyTerms(
+  text: string,
+  limit = 6,
+): Promise<Note[]> {
+  const db = await getDb();
+  const tokens = tokenizeForSearch(text).slice(0, 12);
+  if (!tokens.length) return listRecentNotes(limit);
+
+  if (isFtsEnabled()) {
+    try {
+      const query = tokens.map((token) => `${token}*`).join(' OR ');
+      const rows = await db.getAllAsync<NoteRow>(
+        `SELECT n.* FROM notes_fts JOIN notes n ON n.id = notes_fts.note_id
+         WHERE notes_fts MATCH ?
+           AND n.deleted_at IS NULL
+           AND n.archived_at IS NULL
+         ORDER BY bm25(notes_fts), n.occurred_at DESC
+         LIMIT ?`,
+        [query, limit],
+      );
+      if (rows.length) return hydrateNotes(rows);
+    } catch {
+      // Fall through to LIKE search.
+    }
+  }
+
+  const conditions: string[] = [];
+  const params: BindValue[] = [];
+  for (const token of tokens) {
+    const like = `%${token}%`;
+    conditions.push(
+      `(n.title LIKE ? OR n.body LIKE ?
+        OR EXISTS (SELECT 1 FROM note_tags nt JOIN tags t ON t.id = nt.tag_id WHERE nt.note_id = n.id AND t.name LIKE ?)
+        OR EXISTS (SELECT 1 FROM note_enrichments e WHERE e.note_id = n.id AND e.keywords_json LIKE ?))`,
+    );
+    params.push(like, like, like, like);
+  }
+  params.push(limit);
+  const rows = await db.getAllAsync<NoteRow>(
+    `SELECT n.* FROM notes n
+     WHERE n.deleted_at IS NULL AND n.archived_at IS NULL
+       AND (${conditions.join(' OR ')})
+     ORDER BY n.occurred_at DESC
+     LIMIT ?`,
+    params,
+  );
+  return rows.length ? hydrateNotes(rows) : listRecentNotes(limit);
 }
 
 export async function getNoteStats(): Promise<NoteStats> {
@@ -396,6 +446,56 @@ async function replaceNoteTags(
       [noteId, tagId],
     );
   }
+}
+
+const SEARCH_STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'about',
+  'did',
+  'do',
+  'does',
+  'for',
+  'from',
+  'had',
+  'has',
+  'have',
+  'how',
+  'i',
+  'in',
+  'is',
+  'it',
+  'me',
+  'my',
+  'of',
+  'on',
+  'or',
+  'that',
+  'the',
+  'this',
+  'to',
+  'was',
+  'were',
+  'what',
+  'when',
+  'where',
+  'which',
+  'who',
+  'why',
+  'with',
+]);
+
+function tokenizeForSearch(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 1 && !SEARCH_STOP_WORDS.has(token));
 }
 
 function toFtsQuery(text: string): string | null {

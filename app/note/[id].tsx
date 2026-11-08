@@ -12,6 +12,7 @@ import {
 
 import { Chip } from '../../src/components/common/Chip';
 import { colors, radius, spacing, typography } from '../../src/constants/theme';
+import { useAIStatus, useNoteEnrichment } from '../../src/hooks/useAI';
 import {
   useDeleteForever,
   useDeleteNote,
@@ -33,6 +34,8 @@ export default function NoteDetailScreen() {
   const deleteForever = useDeleteForever();
   const extend = useExtendScratchpad();
   const makePermanent = useMakePermanent();
+  const ai = useAIStatus();
+  const enrichment = useNoteEnrichment(id);
 
   if (note.isLoading) {
     return (
@@ -90,6 +93,25 @@ export default function NoteDetailScreen() {
     );
   };
 
+  const openAI = () => {
+    if (ai.status === 'offline') {
+      Alert.alert(
+        'You are offline',
+        'Connect to the internet to use AI. Keyword search still works.',
+      );
+      return;
+    }
+    if (ai.status === 'no_key' || ai.status === 'disabled') {
+      router.push('/ai-settings');
+      return;
+    }
+    if (ai.status === 'ready') {
+      router.push(`/extract/${id}`);
+      return;
+    }
+    Alert.alert('Checking AI', 'Wait a moment while the connection is checked.');
+  };
+
   return (
     <ScrollView
       style={styles.screen}
@@ -111,6 +133,67 @@ export default function NoteDetailScreen() {
 
       <Text style={styles.title}>{noteTitle(data)}</Text>
       {data.body ? <Text style={styles.body}>{data.body}</Text> : null}
+
+      {!inTrash ? (
+        <Pressable
+          onPress={openAI}
+          style={({ pressed }) => [styles.aiCard, pressed && styles.aiCardPressed]}
+        >
+          <View style={styles.aiIcon}>
+            <Ionicons
+              name={
+                ai.status === 'offline'
+                  ? 'cloud-offline-outline'
+                  : 'sparkles-outline'
+              }
+              size={18}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.aiText}>
+            <Text style={styles.aiTitle}>
+              {enrichment.data ? 'AI details' : 'AI suggestions'}
+            </Text>
+            <Text style={styles.aiSubtitle} numberOfLines={2}>
+              {enrichment.data?.summary ||
+                (ai.status === 'offline'
+                  ? 'You are offline — keyword search still works'
+                  : ai.status === 'no_key'
+                    ? 'Add an API key in Settings'
+                    : ai.status === 'disabled'
+                      ? 'Enable AI in Settings'
+                      : 'Summarize, tag, and extract search keywords')}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+        </Pressable>
+      ) : null}
+
+      {enrichment.data?.summary ? (
+        <View style={styles.aiSummaryCard}>
+          <Text style={styles.aiSummaryLabel}>AI summary</Text>
+          <Text style={styles.aiSummaryText}>{enrichment.data.summary}</Text>
+          {enrichment.data.keyPoints.length ? (
+            <View style={styles.aiPoints}>
+              {enrichment.data.keyPoints.map((point) => (
+                <View key={point} style={styles.aiPointRow}>
+                  <View style={styles.aiBullet} />
+                  <Text style={styles.aiPointText}>{point}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          {enrichment.data.keywords.length ? (
+            <View style={styles.aiKeywords}>
+              {enrichment.data.keywords.map((keyword) => (
+                <View key={keyword} style={styles.aiKeyword}>
+                  <Text style={styles.aiKeywordText}>{keyword}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       {data.tags.length ? (
         <View style={styles.tags}>
@@ -256,6 +339,94 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text,
     lineHeight: 24,
+  },
+  aiCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
+  aiCardPressed: {
+    opacity: 0.8,
+  },
+  aiIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiText: {
+    flex: 1,
+    gap: spacing.xxs,
+  },
+  aiTitle: {
+    ...typography.bodyStrong,
+    color: colors.text,
+  },
+  aiSubtitle: {
+    ...typography.small,
+    color: colors.textMuted,
+  },
+  aiSummaryCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  aiSummaryLabel: {
+    ...typography.tiny,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+  },
+  aiSummaryText: {
+    ...typography.body,
+    color: colors.text,
+    lineHeight: 22,
+  },
+  aiPoints: {
+    gap: spacing.xs,
+    paddingTop: spacing.xs,
+  },
+  aiPointRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  aiBullet: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.accent,
+    marginTop: 8,
+  },
+  aiPointText: {
+    ...typography.small,
+    color: colors.textMuted,
+    flex: 1,
+    lineHeight: 19,
+  },
+  aiKeywords: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  aiKeyword: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  aiKeywordText: {
+    ...typography.tiny,
+    color: colors.textMuted,
+    fontWeight: '500',
   },
   tags: {
     flexDirection: 'row',

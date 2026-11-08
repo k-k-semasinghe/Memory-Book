@@ -130,7 +130,8 @@ CREATE TABLE IF NOT EXISTS ai_processing_jobs (
 CREATE TABLE IF NOT EXISTS ai_conversations (
   id TEXT PRIMARY KEY,
   title TEXT,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ai_messages (
@@ -139,7 +140,31 @@ CREATE TABLE IF NOT EXISTS ai_messages (
   role TEXT NOT NULL,
   content TEXT NOT NULL,
   cited_note_ids TEXT,
+  provider TEXT,
+  model TEXT,
   created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS note_enrichments (
+  note_id TEXT PRIMARY KEY REFERENCES notes(id) ON DELETE CASCADE,
+  summary TEXT,
+  key_points_json TEXT,
+  suggested_category_id TEXT,
+  suggested_tag_ids_json TEXT,
+  keywords_json TEXT,
+  confidence_json TEXT,
+  provider TEXT,
+  model TEXT,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ai_usage (
+  id TEXT PRIMARY KEY,
+  day TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  model TEXT,
+  request_count INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS sync_outbox (
@@ -178,6 +203,11 @@ CREATE INDEX IF NOT EXISTS notes_expires_idx ON notes(expires_at);
 CREATE INDEX IF NOT EXISTS notes_deleted_idx ON notes(deleted_at);
 CREATE INDEX IF NOT EXISTS note_tags_tag_idx ON note_tags(tag_id);
 CREATE INDEX IF NOT EXISTS reminders_due_idx ON reminders(due_at);
+CREATE UNIQUE INDEX IF NOT EXISTS ai_usage_day_provider_unique ON ai_usage(day, provider);
+`;
+
+export const MIGRATION_V2_SQL = `
+DROP TABLE IF EXISTS notes_fts;
 `;
 
 export const FTS_SQL = `
@@ -187,6 +217,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5(
   body,
   tags,
   category,
+  keywords,
   tokenize = 'unicode61 remove_diacritics 2'
 );
 `;

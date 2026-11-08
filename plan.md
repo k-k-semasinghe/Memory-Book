@@ -392,3 +392,6 @@ memory-book/
 - Crash-free sessions.
 
 Optimize for reliable capture and successful recall, not for AI conversation count.
+
+
+opencode --session ses_e4b54a11affemCetBjvOP2Bapy

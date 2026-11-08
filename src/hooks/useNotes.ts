@@ -21,6 +21,7 @@ import {
   updateNote,
 } from '../db/repositories/notes';
 import type { NoteInput, SearchFilters } from '../types';
+import { categoryKeys } from './useCategories';
 
 export const noteKeys = {
   all: ['notes'] as const,
@@ -39,6 +40,7 @@ function useInvalidateNotes() {
   return () => {
     void queryClient.invalidateQueries({ queryKey: ['notes'] });
     void queryClient.invalidateQueries({ queryKey: noteKeys.stats });
+    void queryClient.invalidateQueries({ queryKey: categoryKeys.all });
   };
 }
 

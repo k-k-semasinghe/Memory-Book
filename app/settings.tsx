@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { colors, radius, spacing, typography } from '../src/constants/theme';
+import { useAIStatus } from '../src/hooks/useAI';
 import { useNoteStats } from '../src/hooks/useNotes';
 
 interface RowProps {
@@ -47,9 +48,19 @@ function Row({ icon, title, subtitle, onPress, danger }: RowProps) {
 export default function SettingsScreen() {
   const router = useRouter();
   const stats = useNoteStats();
+  const ai = useAIStatus();
 
   const comingSoon = (title: string, message: string) =>
     Alert.alert(title, message);
+
+  const aiSubtitle =
+    ai.status === 'ready'
+      ? 'Gemini / Groq · ready'
+      : ai.status === 'offline'
+        ? 'Offline · keyword search still works'
+        : ai.status === 'no_key'
+          ? 'Add a Gemini or Groq API key'
+          : 'Bring your own key · opt-in';
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -92,13 +103,8 @@ export default function SettingsScreen() {
         <Row
           icon="sparkles-outline"
           title="AI assistant"
-          subtitle="Needs the AI backend"
-          onPress={() =>
-            comingSoon(
-              'AI assistant',
-              'Natural-language answers and smart suggestions will appear once the AI backend is connected. Your notes stay on this device until then.',
-            )
-          }
+          subtitle={aiSubtitle}
+          onPress={() => router.push('/ai-settings')}
         />
         <View style={styles.divider} />
         <Row
