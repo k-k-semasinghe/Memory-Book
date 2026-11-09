@@ -59,7 +59,7 @@ export default function StorageScreen() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.screen, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       <View style={styles.infoCard}>
         <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
         <Text style={styles.infoText}>

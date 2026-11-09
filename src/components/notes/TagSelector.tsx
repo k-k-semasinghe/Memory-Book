@@ -63,7 +63,7 @@ export function TagSelector({ selectedIds, onChange }: TagSelectorProps) {
           onChangeText={setInput}
           placeholder="Add a tag…"
           placeholderTextColor={colors.textFaint}
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border }]}
           returnKeyType="done"
           onSubmitEditing={add}
           autoCapitalize="none"

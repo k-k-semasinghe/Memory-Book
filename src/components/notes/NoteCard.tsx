@@ -20,7 +20,11 @@ export function NoteCard({ note, onPress, showScratchpadStatus }: NoteCardProps)
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed ? styles.pressed : null]}
+      style={({ pressed }) => [
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+        pressed ? styles.pressed : null,
+      ]}
     >
       <View style={styles.topRow}>
         <View style={styles.metaLeft}>
@@ -68,7 +72,7 @@ export function NoteCard({ note, onPress, showScratchpadStatus }: NoteCardProps)
       {note.tags.length ? (
         <View style={styles.tags}>
           {note.tags.slice(0, 3).map((tag) => (
-            <View key={tag.id} style={styles.tag}>
+            <View key={tag.id} style={[styles.tag, { backgroundColor: colors.surfaceMuted }]}>
               <Text style={styles.tagText}>#{tag.name}</Text>
             </View>
           ))}

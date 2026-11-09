@@ -150,7 +150,7 @@ export default function AISettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.screen, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       <View style={styles.privacyCard}>
         <View style={styles.privacyIcon}>
           <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />

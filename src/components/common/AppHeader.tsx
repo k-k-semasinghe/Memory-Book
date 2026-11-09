@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 import { colors, spacing, typography } from '../../constants/theme';
 
@@ -13,7 +13,14 @@ export function AppHeader({ title, subtitle, right }: AppHeaderProps) {
   return (
     <View style={styles.container}>
       <View style={styles.text}>
-        <Text style={styles.title}>{title}</Text>
+        <View style={styles.titleRow}>
+          <Image
+            source={require('../../../src/Icon/Glowing Memory Notebook Icon.png')}
+            style={styles.icon}
+            accessibilityLabel="Memory Book icon"
+          />
+          <Text style={styles.title}>{title}</Text>
+        </View>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
       {right ? <View>{right}</View> : null}
@@ -34,6 +41,16 @@ const styles = StyleSheet.create({
   text: {
     flex: 1,
     gap: spacing.xxs,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  icon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
   },
   title: {
     ...typography.display,

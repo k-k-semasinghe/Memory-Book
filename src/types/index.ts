@@ -59,6 +59,36 @@ export interface NoteInput {
   recordType?: RecordType;
 }
 
+export type ReminderRecurrence =
+  | 'none'
+  | 'hourly'
+  | 'daily'
+  | 'weekly'
+  | 'yearly';
+
+export interface Reminder {
+  id: string;
+  noteId: string | null;
+  title: string;
+  description: string | null;
+  dueAt: string;
+  timezone: string;
+  recurrence: ReminderRecurrence;
+  nextOccurrence: string | null;
+  notificationEnabled: boolean;
+  deviceNotificationId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReminderInput {
+  noteId?: string | null;
+  title: string;
+  description?: string | null;
+  dueAt: string;
+  recurrence: ReminderRecurrence;
+}
+
 export interface SearchFilters {
   text: string;
   categoryId: string | null;

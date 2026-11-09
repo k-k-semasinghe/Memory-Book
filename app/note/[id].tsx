@@ -21,6 +21,7 @@ import {
   useNote,
   useRestoreNote,
 } from '../../src/hooks/useNotes';
+import { useNoteReminders } from '../../src/hooks/useReminders';
 import { expiryLabel, formatDateTime, isExpired } from '../../src/utils/dates';
 import { noteTitle } from '../../src/utils/format';
 
@@ -36,6 +37,7 @@ export default function NoteDetailScreen() {
   const makePermanent = useMakePermanent();
   const ai = useAIStatus();
   const enrichment = useNoteEnrichment(id);
+  const reminders = useNoteReminders(id);
 
   if (note.isLoading) {
     return (
@@ -114,7 +116,7 @@ export default function NoteDetailScreen() {
 
   return (
     <ScrollView
-      style={styles.screen}
+      style={[styles.screen, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
     >
       <View style={styles.metaTop}>
@@ -133,6 +135,22 @@ export default function NoteDetailScreen() {
 
       <Text style={styles.title}>{noteTitle(data)}</Text>
       {data.body ? <Text style={styles.body}>{data.body}</Text> : null}
+
+      {!inTrash ? (
+        <Pressable
+          onPress={() => router.push({ pathname: '/reminders', params: { noteId: id, title: noteTitle(data) } })}
+          style={styles.reminderCard}
+        >
+          <Ionicons name="notifications-outline" size={18} color={colors.primary} />
+          <View style={styles.reminderText}>
+            <Text style={styles.reminderTitle}>Add a reminder</Text>
+            <Text style={styles.reminderSubtitle}>
+              {reminders.data?.length ? `${reminders.data.length} reminder${reminders.data.length === 1 ? '' : 's'} scheduled` : 'Get notified about this memory'}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+        </Pressable>
+      ) : null}
 
       {!inTrash ? (
         <Pressable
@@ -350,6 +368,26 @@ const styles = StyleSheet.create({
   },
   aiCardPressed: {
     opacity: 0.8,
+  },
+  reminderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+  },
+  reminderText: {
+    flex: 1,
+    gap: spacing.xxs,
+  },
+  reminderTitle: {
+    ...typography.bodyStrong,
+    color: colors.text,
+  },
+  reminderSubtitle: {
+    ...typography.small,
+    color: colors.textMuted,
   },
   aiIcon: {
     width: 34,

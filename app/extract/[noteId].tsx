@@ -195,7 +195,7 @@ export default function ExtractScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.screen, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       <View style={styles.noteCard}>
         <View style={styles.noteHeader}>
           <Ionicons name="document-text-outline" size={18} color={colors.primary} />

@@ -78,7 +78,7 @@ export function CategoryPicker({ selectedId, onChange }: CategoryPickerProps) {
             onChangeText={setName}
             placeholder="New category name"
             placeholderTextColor={colors.textFaint}
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border }]}
             autoFocus
             returnKeyType="done"
             onSubmitEditing={submit}

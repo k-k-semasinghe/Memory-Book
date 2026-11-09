@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { endOfDay, startOfDay, subDays } from 'date-fns';
+import { endOfDay, format, startOfDay, subDays } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Keyboard,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -15,8 +15,15 @@ import {
 } from 'react-native';
 
 import { AppHeader } from '../../src/components/common/AppHeader';
-import { Chip } from '../../src/components/common/Chip';
 import { EmptyState } from '../../src/components/common/EmptyState';
+import {
+  DateFilterSheet,
+  FilterSheet,
+} from '../../src/components/common/FilterSheets';
+import type {
+  DateRangeKey,
+  FilterOption,
+} from '../../src/components/common/FilterSheets';
 import { Screen } from '../../src/components/common/Screen';
 import { NoteCard } from '../../src/components/notes/NoteCard';
 import { colors, radius, spacing, typography } from '../../src/constants/theme';
@@ -27,9 +34,9 @@ import { useTags } from '../../src/hooks/useTags';
 import { useSearchStore } from '../../src/stores/useSearchStore';
 import type { SearchFilters } from '../../src/types';
 
-type RangeKey = 'any' | '7d' | '30d' | '90d';
+type RangeKey = DateRangeKey;
 
-const RANGES: Array<{ key: RangeKey; label: string; days?: number }> = [
+const RANGES: Array<{ key: Exclude<RangeKey, 'exact'>; label: string; days?: number }> = [
   { key: 'any', label: 'Any time' },
   { key: '7d', label: 'Last 7 days', days: 7 },
   { key: '30d', label: 'Last 30 days', days: 30 },
@@ -66,6 +73,39 @@ function aiCardSubtitle(status: ReturnType<typeof useAIStatus>['status']): strin
   }
 }
 
+interface FilterButtonProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  active?: boolean;
+  onPress: () => void;
+}
+
+function FilterButton({ icon, label, active, onPress }: FilterButtonProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.filterButton,
+        active && styles.filterButtonActive,
+        pressed && styles.filterButtonPressed,
+      ]}
+    >
+      <Ionicons
+        name={icon}
+        size={15}
+        color={active ? colors.primary : colors.textMuted}
+      />
+      <Text
+        style={[styles.filterButtonText, active && styles.filterButtonTextActive]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+      <Ionicons name="chevron-down" size={13} color={colors.textFaint} />
+    </Pressable>
+  );
+}
+
 export default function SearchScreen() {
   const router = useRouter();
   const categories = useActiveCategories();
@@ -89,17 +129,23 @@ export default function SearchScreen() {
 
   const [query, setQuery] = useState(text);
   const [range, setRange] = useState<RangeKey>('any');
+  const [exactDate, setExactDate] = useState<Date | null>(null);
+  const [activeSheet, setActiveSheet] = useState<
+    'category' | 'date' | 'tags' | null
+  >(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setText(query), 250);
     return () => clearTimeout(timer);
   }, [query, setText]);
 
-  const applyRange = (key: RangeKey) => {
+  const applyRange = (key: Exclude<RangeKey, 'exact'>) => {
     setRange(key);
+    setExactDate(null);
     const option = RANGES.find((item) => item.key === key);
     if (!option?.days) {
       setDateRange(null, null);
+      setActiveSheet(null);
       return;
     }
     const now = new Date();
@@ -107,6 +153,51 @@ export default function SearchScreen() {
       startOfDay(subDays(now, option.days)).toISOString(),
       endOfDay(now).toISOString(),
     );
+    setActiveSheet(null);
+  };
+
+  const applyExactDate = (date: Date) => {
+    setRange('exact');
+    setExactDate(date);
+    setDateRange(startOfDay(date).toISOString(), endOfDay(date).toISOString());
+    setActiveSheet(null);
+  };
+
+  const categoryOptions = useMemo<FilterOption[]>(
+    () => [
+      { id: null, label: 'All categories' },
+      ...(categories.data ?? []).map((category) => ({
+        id: category.id,
+        label: category.name,
+        color: category.color,
+      })),
+    ],
+    [categories.data],
+  );
+
+  const tagOptions = useMemo<FilterOption[]>(
+    () =>
+      (tags.data ?? []).map((tag) => ({
+        id: tag.id,
+        label: `#${tag.name}`,
+      })),
+    [tags.data],
+  );
+
+  const categoryLabel =
+    categories.data?.find((category) => category.id === categoryId)?.name ??
+    'All';
+  const rangeLabel =
+    range === 'exact' && exactDate
+      ? format(exactDate, 'MMM d, yyyy')
+      : (RANGES.find((option) => option.key === range)?.label ?? 'Any time');
+  const tagLabel = tagIds.length
+    ? `${tagIds.length} ${tagIds.length === 1 ? 'tag' : 'tags'}`
+    : 'All';
+
+  const openSheet = (sheet: 'category' | 'date' | 'tags') => {
+    Keyboard.dismiss();
+    setActiveSheet(sheet);
   };
 
   const filters = useMemo<SearchFilters>(
@@ -131,6 +222,8 @@ export default function SearchScreen() {
   const clearAll = () => {
     setQuery('');
     setRange('any');
+    setExactDate(null);
+    setActiveSheet(null);
     reset();
   };
 
@@ -167,72 +260,56 @@ export default function SearchScreen() {
         <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
       </Pressable>
 
-      <Text style={styles.label}>Category</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipRow}
-      >
-        <Chip label="All" active={!categoryId} onPress={() => setCategory(null)} />
-        {(categories.data ?? []).map((category) => (
-          <Chip
-            key={category.id}
-            label={category.name}
-            color={category.color}
-            active={categoryId === category.id}
-            onPress={() =>
-              setCategory(categoryId === category.id ? null : category.id)
-            }
-          />
-        ))}
-      </ScrollView>
-
-      <Text style={styles.label}>Date</Text>
-      <View style={styles.wrapRow}>
-        {RANGES.map((option) => (
-          <Chip
-            key={option.key}
-            label={option.label}
-            active={range === option.key}
-            onPress={() => applyRange(option.key)}
-          />
-        ))}
-      </View>
-
-      <Text style={styles.label}>Scratchpad</Text>
-      <View style={styles.wrapRow}>
-        <Chip
-          label="Notes only"
-          active={scratchpadMode === 'exclude'}
-          onPress={() => setScratchpadMode('exclude')}
+      <View style={styles.filterRow}>
+        <FilterButton
+          icon="grid-outline"
+          label={categoryLabel}
+          active={Boolean(categoryId)}
+          onPress={() => openSheet('category')}
         />
-        <Chip
-          label="Include"
-          active={scratchpadMode === 'include'}
-          onPress={() => setScratchpadMode('include')}
+        <FilterButton
+          icon="calendar-outline"
+          label={rangeLabel}
+          active={range !== 'any'}
+          onPress={() => openSheet('date')}
         />
-        <Chip
-          label="Scratchpad only"
-          active={scratchpadMode === 'only'}
-          onPress={() => setScratchpadMode('only')}
+        <FilterButton
+          icon="pricetags-outline"
+          label={tagLabel}
+          active={tagIds.length > 0}
+          onPress={() => openSheet('tags')}
         />
       </View>
 
-      {tags.data?.length ? (
-        <>
-          <Text style={styles.label}>Tags</Text>
-          <View style={styles.wrapRow}>
-            {tags.data.map((tag) => (
-              <Chip
-                key={tag.id}
-                label={`#${tag.name}`}
-                active={tagIds.includes(tag.id)}
-                onPress={() => toggleTag(tag.id)}
-              />
-            ))}
+      <View style={styles.optionsRow}>
+        <Pressable
+          onPress={() =>
+            setScratchpadMode(
+              scratchpadMode === 'exclude' ? 'include' : 'exclude',
+            )
+          }
+          style={styles.checkboxRow}
+          hitSlop={6}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              scratchpadMode !== 'exclude' && styles.checkboxChecked,
+            ]}
+          >
+            {scratchpadMode !== 'exclude' ? (
+              <Ionicons name="checkmark" size={13} color={colors.white} />
+            ) : null}
           </View>
-        </>
-      ) : null}
+          <Text style={styles.checkboxLabel}>Include scratchpad</Text>
+        </Pressable>
+
+        {hasFilters ? (
+          <Pressable onPress={clearAll} hitSlop={8}>
+            <Text style={styles.clear}>Clear filters</Text>
+          </Pressable>
+        ) : null}
+      </View>
 
       <View style={styles.resultsRow}>
         <Text style={styles.resultsText}>
@@ -240,11 +317,6 @@ export default function SearchScreen() {
             ? 'Searching…'
             : `${notes.length} ${notes.length === 1 ? 'result' : 'results'}`}
         </Text>
-        {hasFilters ? (
-          <Pressable onPress={clearAll} hitSlop={8}>
-            <Text style={styles.clear}>Clear filters</Text>
-          </Pressable>
-        ) : null}
       </View>
     </View>
   );
@@ -297,6 +369,39 @@ export default function SearchScreen() {
           }
         />
       )}
+
+      <FilterSheet
+        visible={activeSheet === 'category'}
+        title="Category"
+        options={categoryOptions}
+        selectedIds={[categoryId]}
+        onToggle={setCategory}
+        onClose={() => setActiveSheet(null)}
+      />
+
+      <FilterSheet
+        visible={activeSheet === 'tags'}
+        title="Tags"
+        options={tagOptions}
+        selectedIds={tagIds}
+        multi
+        emptyLabel="No tags yet. Add tags to your notes first."
+        onToggle={(id) => {
+          if (id) {
+            toggleTag(id);
+          }
+        }}
+        onClose={() => setActiveSheet(null)}
+      />
+
+      <DateFilterSheet
+        visible={activeSheet === 'date'}
+        selectedKey={range}
+        exactDate={exactDate}
+        onSelectPreset={applyRange}
+        onSelectDate={applyExactDate}
+        onClose={() => setActiveSheet(null)}
+      />
     </Screen>
   );
 }
@@ -395,6 +500,68 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: spacing.md,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  filterButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    minHeight: 36,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
+  },
+  filterButtonPressed: {
+    opacity: 0.75,
+  },
+  filterButtonText: {
+    ...typography.small,
+    color: colors.textMuted,
+    flexShrink: 1,
+  },
+  filterButtonTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 32,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkboxLabel: {
+    ...typography.small,
+    color: colors.textMuted,
   },
   loader: {
     paddingVertical: spacing.xxl,

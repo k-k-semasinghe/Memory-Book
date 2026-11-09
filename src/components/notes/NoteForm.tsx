@@ -98,7 +98,7 @@ export function NoteForm({
       </View>
 
       <ScrollView
-        style={styles.flex}
+        style={[styles.flex, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >

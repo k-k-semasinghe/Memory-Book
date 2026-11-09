@@ -2,26 +2,60 @@
   "expo": {
     "name": "Memory Book",
     "slug": "memory-book",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "orientation": "portrait",
     "scheme": "memorybook",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "icon": "./src/Icon/Glowing Memory Notebook Icon.png",
+    "splash": {
+      "image": "./src/Icon/Glowing Memory Notebook Icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#070A2A"
+    },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#070A2A"
+    },
+    "androidNavigationBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#070A2A",
+      "enforceContrast": false
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.memorybook.app"
     },
     "android": {
-      "package": "com.memorybook.app"
+      "package": "com.memorybook.app",
+      "versionCode": 3,
+      "adaptiveIcon": {
+        "foregroundImage": "./src/Icon/Glowing Memory Notebook Icon.png",
+        "backgroundColor": "#070A2A"
+      }
+    },
+    "web": {
+      "favicon": "./src/Icon/Glowing Memory Notebook Icon.png"
     },
     "plugins": [
       "expo-router",
       "expo-sqlite",
       "expo-status-bar",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "9f6b05f0-dae3-4ab9-a8be-95204673ecb1"
+      }
     }
   }
 }

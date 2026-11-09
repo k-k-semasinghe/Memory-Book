@@ -49,7 +49,6 @@ export default function SettingsScreen() {
   const router = useRouter();
   const stats = useNoteStats();
   const ai = useAIStatus();
-
   const comingSoon = (title: string, message: string) =>
     Alert.alert(title, message);
 
@@ -63,7 +62,10 @@ export default function SettingsScreen() {
           : 'Bring your own key · opt-in';
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={[styles.screen, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.content}
+    >
       <Text style={styles.sectionLabel}>Organize</Text>
       <View style={styles.group}>
         <Row
@@ -110,8 +112,15 @@ export default function SettingsScreen() {
         <Row
           icon="notifications-outline"
           title="Reminders"
-          subtitle="Local reminders · next milestone"
+          subtitle="One-time, hourly, daily, weekly, or yearly"
           onPress={() => router.push('/reminders')}
+        />
+        <View style={styles.divider} />
+        <Row
+          icon="options-outline"
+          title="Permissions"
+          subtitle="Notifications, alarms, full-screen"
+          onPress={() => router.push('/permissions')}
         />
       </View>
 

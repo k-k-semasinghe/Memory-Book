@@ -11,7 +11,10 @@ interface ScreenProps {
 
 export function Screen({ children, style }: ScreenProps) {
   return (
-    <SafeAreaView style={[styles.safe, style]} edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: colors.background }, style]}
+      edges={['top', 'left', 'right']}
+    >
       {children}
     </SafeAreaView>
   );

@@ -1,9 +1,12 @@
 node_modules/
 .expo/
+android/.gradle/
+android/build/
+android/app/build/
+android/.cxx/
 dist/
 web-build/
 .expo-shared/
-android/
 ios/
 *.orig.*
 *.jks

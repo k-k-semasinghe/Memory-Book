@@ -129,7 +129,7 @@ export default function HomeScreen() {
           <View style={styles.linkText}>
             <Text style={styles.linkTitle}>Reminders</Text>
             <Text style={styles.linkSubtitle}>
-              Local reminders are the next milestone
+              One-time and repeating notifications
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />

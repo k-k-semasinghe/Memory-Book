@@ -18,6 +18,7 @@ export function Chip({ label, active, color, icon, onPress }: ChipProps) {
       disabled={!onPress}
       style={({ pressed }) => [
         styles.chip,
+        { backgroundColor: active ? colors.primarySoft : colors.surface, borderColor: active ? colors.primary : colors.border },
         active && styles.chipActive,
         pressed && onPress ? styles.chipPressed : null,
       ]}
