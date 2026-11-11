@@ -1,0 +1,20 @@
+
+name: Restrict Pull Request Target
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+jobs:
+  validate-target:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check target branch
+        run: |
+          if [ "${{ github.event.pull_request.base.ref }}" != "dev" ]; then
+            echo "Pull requests are only accepted into dev."
+            exit 1
+          fi
+
+          echo "Valid pull request target."
