@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 
@@ -40,25 +39,11 @@ public class FullScreenReminderReceiver extends BroadcastReceiver {
     long dueAt = intent.getLongExtra(EXTRA_DUE_AT, System.currentTimeMillis());
     String recurrence = valueOrFallback(intent.getStringExtra(EXTRA_RECURRENCE), "none");
     boolean wantsFullScreen = intent.getBooleanExtra(EXTRA_FULL_SCREEN, true);
-    boolean fullScreenNotification = wantsFullScreen && canUseFullScreenIntent(context);
     boolean launchDirectly = wantsFullScreen && canDrawOverlays(context);
+    boolean fullScreenNotification =
+        wantsFullScreen && !launchDirectly && canUseFullScreenIntent(context);
 
     ensureChannel(context);
-
-    Intent openIntent = new Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse("memorybook://reminder-alert?reminderId=" + Uri.encode(id)))
-        .setClass(context, MainActivity.class)
-        .addFlags(
-            Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    PendingIntent contentIntent =
-        PendingIntent.getActivity(
-            context,
-            id.hashCode(),
-            openIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
     Intent alertIntent = new Intent(context, FullScreenReminderActivity.class)
         .putExtras(intent)
@@ -66,7 +51,7 @@ public class FullScreenReminderReceiver extends BroadcastReceiver {
             Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    PendingIntent alertPendingIntent =
+    PendingIntent contentIntent =
         PendingIntent.getActivity(
             context,
             id.hashCode() + 1,
@@ -87,13 +72,15 @@ public class FullScreenReminderReceiver extends BroadcastReceiver {
         .setDefaults(Notification.DEFAULT_ALL)
         .setVisibility(Notification.VISIBILITY_PUBLIC);
 
-    if (fullScreenNotification) {
+    if (wantsFullScreen) {
       builder
           .setCategory(Notification.CATEGORY_ALARM)
           .setPriority(Notification.PRIORITY_MAX)
           .setOngoing(true)
-          .setAutoCancel(false)
-          .setFullScreenIntent(alertPendingIntent, true);
+          .setAutoCancel(false);
+      if (fullScreenNotification) {
+        builder.setFullScreenIntent(contentIntent, true);
+      }
     } else {
       builder
           .setCategory(Notification.CATEGORY_REMINDER)
@@ -110,7 +97,7 @@ public class FullScreenReminderReceiver extends BroadcastReceiver {
 
     if (launchDirectly) {
       try {
-        context.startActivity(openIntent);
+        context.startActivity(alertIntent);
       } catch (RuntimeException ignored) {
       }
     }

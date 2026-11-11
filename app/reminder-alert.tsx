@@ -1,15 +1,28 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, spacing, typography } from '../src/constants/theme';
 import { useReminders } from '../src/hooks/useReminders';
+import {
+  clearPendingReminder,
+  dismissReminderNotification,
+} from '../src/notifications';
 
 export default function ReminderAlertScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ reminderId?: string }>();
   const reminders = useReminders();
   const reminder = reminders.data?.find((item) => item.id === params.reminderId);
+
+  useEffect(() => {
+    if (typeof params.reminderId === 'string') {
+      void clearPendingReminder(params.reminderId);
+      void dismissReminderNotification(params.reminderId);
+    }
+  }, [params.reminderId]);
+
   const close = () => {
     if (router.canGoBack()) {
       router.back();

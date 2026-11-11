@@ -2,7 +2,7 @@
   "expo": {
     "name": "Memory Book",
     "slug": "memory-book",
-    "version": "0.1.2",
+    "version": "0.1.8",
     "orientation": "portrait",
     "scheme": "memorybook",
     "userInterfaceStyle": "dark",
@@ -27,7 +27,7 @@
     },
     "android": {
       "package": "com.memorybook.app",
-      "versionCode": 3,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./src/Icon/Glowing Memory Notebook Icon.png",
         "backgroundColor": "#070A2A"

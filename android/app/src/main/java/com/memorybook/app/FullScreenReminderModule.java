@@ -68,6 +68,40 @@ public class FullScreenReminderModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void clearPending(String id, Promise promise) {
+    try {
+      PendingReminderStore.clear(getReactApplicationContext(), id);
+      promise.resolve(null);
+    } catch (RuntimeException error) {
+      promise.reject("reminder_pending_failed", error);
+    }
+  }
+
+  @ReactMethod
+  public void dismissNotification(String id, Promise promise) {
+    try {
+      NotificationManager manager =
+          (NotificationManager) getReactApplicationContext()
+              .getSystemService(Context.NOTIFICATION_SERVICE);
+      if (manager != null) {
+        manager.cancel(id.hashCode());
+      }
+      promise.resolve(null);
+    } catch (RuntimeException error) {
+      promise.reject("reminder_dismiss_failed", error);
+    }
+  }
+
+  @ReactMethod
+  public void getLastCrash(Promise promise) {
+    try {
+      promise.resolve(CrashLogger.readAndClear(getReactApplicationContext()));
+    } catch (RuntimeException error) {
+      promise.reject("crash_log_failed", error);
+    }
+  }
+
+  @ReactMethod
   public void getPermissionStatus(Promise promise) {
     try {
       WritableMap status = Arguments.createMap();

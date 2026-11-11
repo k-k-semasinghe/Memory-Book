@@ -27,7 +27,7 @@
         <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
       </intent-filter>
     </receiver>
-    <activity android:name=".FullScreenReminderActivity" android:excludeFromRecents="true" android:exported="false" android:launchMode="singleTop" android:showWhenLocked="true" android:turnScreenOn="true" android:theme="@style/AppTheme"/>
+    <activity android:name=".FullScreenReminderActivity" android:excludeFromRecents="true" android:exported="false" android:launchMode="singleTop" android:showWhenLocked="true" android:taskAffinity="com.memorybook.app.reminder" android:turnScreenOn="true" android:theme="@style/FullScreenReminderTheme"/>
     <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode|smallestScreenSize|assetsPaths" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.App.SplashScreen" android:exported="true" android:screenOrientation="portrait">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>

@@ -18,6 +18,7 @@ public class FullScreenReminderBootReceiver extends BroadcastReceiver {
       return;
     }
 
+    PendingReminderStore.clear(context);
     long now = System.currentTimeMillis();
     List<JSONObject> reminders = FullScreenReminderScheduler.getAll(context);
     for (JSONObject reminder : reminders) {

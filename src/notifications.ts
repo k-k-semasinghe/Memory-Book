@@ -17,6 +17,9 @@ interface FullScreenReminderNativeModule {
     recurrence: string,
   ): Promise<void>;
   cancel(id: string): Promise<void>;
+  clearPending(id: string): Promise<void>;
+  dismissNotification(id: string): Promise<void>;
+  getLastCrash(): Promise<string | null>;
 }
 
 const fullScreenReminder =
@@ -114,9 +117,29 @@ export async function scheduleReminder(reminder: Reminder): Promise<void> {
   await updateReminderNotification(reminder.id, notificationId);
 }
 
+export async function clearPendingReminder(id: string): Promise<void> {
+  if (Platform.OS === 'android' && fullScreenReminder) {
+    await fullScreenReminder.clearPending(id);
+  }
+}
+
+export async function dismissReminderNotification(id: string): Promise<void> {
+  if (Platform.OS === 'android' && fullScreenReminder) {
+    await fullScreenReminder.dismissNotification(id);
+  }
+}
+
+export async function getLastReminderCrash(): Promise<string | null> {
+  if (Platform.OS === 'android' && fullScreenReminder) {
+    return fullScreenReminder.getLastCrash();
+  }
+  return null;
+}
+
 export async function cancelReminder(reminder: Reminder): Promise<void> {
   if (Platform.OS === 'android' && fullScreenReminder) {
     await fullScreenReminder.cancel(reminder.id);
+    await fullScreenReminder.clearPending(reminder.id);
   } else if (reminder.deviceNotificationId) {
     await Notifications.cancelScheduledNotificationAsync(reminder.deviceNotificationId);
   }

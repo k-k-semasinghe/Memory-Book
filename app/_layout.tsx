@@ -2,12 +2,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRootNavigationState, useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
+import { Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '../src/constants/theme';
 import {
   configureReminderNotifications,
+  getLastReminderCrash,
   REMINDER_DONE_ACTION,
 } from '../src/notifications';
 import { hasSeenPermissionOnboarding } from '../src/permissions/onboarding';
@@ -33,6 +35,14 @@ function AppShell() {
   const router = useRouter();
   const rootNavigationState = useRootNavigationState();
   const checkedPermissionsOnboarding = useRef(false);
+
+  useEffect(() => {
+    void getLastReminderCrash().then((log) => {
+      if (log) {
+        Alert.alert('Reminder crash log', log);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (!rootNavigationState?.key || checkedPermissionsOnboarding.current) {
