@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/k-k-semasinghe/Memory-Book/releases/latest/download/memory-book.apk">
+  <a href="https://github.com/k-k-semasinghe/Memory-Book/releases/download/V-0.1.8/memory-book-0.1.8.apk">
     <img src="https://img.shields.io/badge/Download%20Android%20APK-2ea44f?style=for-the-badge&logo=android&logoColor=white" alt="Download Android APK">
   </a>
 </p>
