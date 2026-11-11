@@ -28,6 +28,22 @@ The app is currently available for **Android only**. It is an early test version
 - Ask the optional AI assistant questions about your notes
 - Get AI suggestions for organizing notes
 
+## See Memory Book
+
+<p align="center">
+  <img src="test%20apk/Screenshot_20261111_140703_Memory%20Book.jpg" alt="Memory Book home screen" width="220">
+  <img src="test%20apk/Screenshot_20261111_140812_Memory%20Book.jpg" alt="Memory Book timeline" width="220">
+  <img src="test%20apk/Screenshot_20261111_140839_Memory%20Book.jpg" alt="Memory Book search" width="220">
+  <img src="test%20apk/Screenshot_20261111_140859_Memory%20Book.jpg" alt="Memory Book note screen" width="220">
+</p>
+
+<p align="center">
+  <img src="test%20apk/Screenshot_20261111_140938_Memory%20Book.jpg" alt="Memory Book scratchpad" width="220">
+  <img src="test%20apk/Screenshot_20261111_140947_Memory%20Book.jpg" alt="Memory Book reminders" width="220">
+  <img src="test%20apk/Screenshot_20261111_141114_Memory%20Book.jpg" alt="Memory Book settings" width="220">
+  <img src="test%20apk/Screenshot_20261111_141147_Memory%20Book.jpg" alt="Memory Book AI settings" width="220">
+</p>
+
 ## Download the Android app
 
 Tap the button at the top of this page to download the latest test APK.
@@ -73,4 +89,3 @@ If you find a problem, please include:
 - A screenshot, if helpful
 
 For setup instructions and technical information, see [Developer Notes](./DEVELOPER_NOTES.md).
-
