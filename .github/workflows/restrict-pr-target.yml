@@ -5,6 +5,8 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
 
+permissions: {}
+
 jobs:
   validate-target:
     runs-on: ubuntu-latest
