@@ -1,0 +1,22 @@
+
+name: Restrict Pull Request Target
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+permissions: {}
+
+jobs:
+  validate-target:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check target branch
+        run: |
+          if [ "${{ github.event.pull_request.base.ref }}" != "main" ]; then
+            echo "Pull requests are only accepted into main."
+            exit 1
+          fi
+
+          echo "Valid pull request target."
