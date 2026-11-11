@@ -12,8 +12,8 @@ jobs:
     steps:
       - name: Check target branch
         run: |
-          if [ "${{ github.event.pull_request.base.ref }}" != "dev" ]; then
-            echo "Pull requests are only accepted into dev."
+          if [ "${{ github.event.pull_request.base.ref }}" != "main" ]; then
+            echo "Pull requests are only accepted into main."
             exit 1
           fi
 
